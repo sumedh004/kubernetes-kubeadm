@@ -4,56 +4,42 @@ new_k8s_version=$1
 
 for i in $(kubectl get nodes | awk '{print $1}' | tail -n +2)
 do
-        #if (( $i=="master" )); then
-	if [[ "$i" == "master" ]]
-	then
+        if (( $i=="master" )); then
 
-		
-		      echo "Upgrading kubeadm on master"
-		      sudo apt-mark unhold kubeadm && \
-		      sudo apt-get update && sudo apt-get install -y kubeadm=$new_k8s_version-00 && \
-		      sudo apt-mark hold kubeadm
 
-		      sudo kubeadm upgrade apply v$new_k8s_version -y
+                echo "Upgrading kubeadm on master"
+                sudo apt-mark unhold kubeadm && \
+                sudo apt-get update && sudo apt-get install -y kubeadm=$new_k8s_version-00 && \
+                sudo apt-mark hold kubeadm && \
 
-		      kubectl drain $i --ignore-daemonsets
+                sudo kubeadm upgrade apply v$new_k8s_version -y && \
 
-		      sudo apt-mark unhold kubelet kubectl && \
-		      sudo apt-get update && sudo apt-get install -y kubelet=$new_k8s_version-00 kubectl=$new_k8s_version-00 && \
-		      sudo apt-mark hold kubelet kubectl
+                kubectl drain $i --ignore-daemonsets && \
 
-		      sudo systemctl daemon-reload
-		      sudo systemctl restart kubelet
-		      kubectl uncordon $i
+                sudo apt-mark unhold kubelet kubectl && \
+                sudo apt-get update && sudo apt-get install -y kubelet=$new_k8s_version-00 kubectl=$new_k8s_version-00 && \
+                sudo apt-mark hold kubelet kubectl
+
+                sudo systemctl daemon-reload
+                sudo systemctl restart kubelet
+                kubectl uncordon $i
 
 
         else
 
-		      echo "Upgrading kubeadm on worker $i"
-		      kubectl cordon $i
+                echo "Upgrading kubeadm on worker $i"
+                kubectl cordon $i && \
 
-		      sudo kubectl drain $i --ignore-daemonsets
+                kubectl drain $i --ignore-daemonsets && \
+                echo "azureuser@$i"
+               # echo "ssh azureuser@$i "bash -s" < upgrade_nodes.sh "$1""
+                ssh azureuser@${i} 'bash -s' < upgrade_nodes.sh $1 && \
 
-		      ssh cloud_user@$i << EOF
 
-		      sudo apt-mark unhold kubeadm && \
-		      sudo apt-get update && sudo apt-get install -y kubeadm=$new_k8s_version-00 && \
-		      sudo apt-mark hold kubeadm
+                sudo systemctl daemon-reload && \
+                sudo systemctl restart kubelet && \
+                kubectl uncordon $i
 
-		      sudo kubeadm upgrade node	
 
-		
-
-		      sudo apt-mark unhold kubelet kubectl && \
-		      sudo apt-get update && sudo apt-get install -y kubelet=$new_k8s_version-00 kubectl=$new_k8s_version-00 && \
-		      sudo apt-mark hold kubelet kubectl
-		      EOF
-
-		      sudo systemctl daemon-reload
-		      sudo systemctl restart kubelet
-		      kubectl uncordon $i
-
-		
-	fi
-
+        fi
 done
