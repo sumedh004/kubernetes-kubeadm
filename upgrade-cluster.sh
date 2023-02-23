@@ -4,7 +4,9 @@ new_k8s_version=$1
 
 for i in $(kubectl get nodes | awk '{print $1}' | tail -n +2)
 do
-        if (( $i=="master" )); then
+        #if (( $i=="master" )); then
+	if [[ "$i" == "master" ]]
+	then
 
 		
 		      echo "Upgrading kubeadm on master"
