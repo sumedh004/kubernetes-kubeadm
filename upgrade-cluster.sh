@@ -18,10 +18,9 @@ do
 
                 sudo apt-mark unhold kubelet kubectl && \
                 sudo apt-get update && sudo apt-get install -y kubelet=$new_k8s_version-00 kubectl=$new_k8s_version-00 && \
-                sudo apt-mark hold kubelet kubectl
-
-                sudo systemctl daemon-reload
-                sudo systemctl restart kubelet
+                sudo apt-mark hold kubelet kubectl && \
+                sudo systemctl daemon-reload && \
+                sudo systemctl restart kubelet && \
                 kubectl uncordon $i
 
 
@@ -29,13 +28,10 @@ do
 
                 echo "Upgrading kubeadm on worker $i"
                 kubectl cordon $i && \
-
                 kubectl drain $i --ignore-daemonsets && \
-                echo "azureuser@$i"
+                #echo "azureuser@$i"
                # echo "ssh azureuser@$i "bash -s" < upgrade_nodes.sh "$1""
                 ssh azureuser@${i} 'bash -s' < upgrade_nodes.sh $1 && \
-
-
                 sudo systemctl daemon-reload && \
                 sudo systemctl restart kubelet && \
                 kubectl uncordon $i
