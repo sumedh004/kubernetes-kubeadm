@@ -31,7 +31,7 @@ do
                 kubectl drain $i --ignore-daemonsets && \
                 #echo "azureuser@$i"
                 #echo "ssh azureuser@$i "bash -s" < upgrade_nodes.sh "$1""
-                ssh -o StrictHostKeyChecking=no azureuser@${i} 'bash -s' < upgrade_nodes.sh $1 && \
+                ssh -o StrictHostKeyChecking=no azureuser@${i} 'bash -s' < upgrade_nodes.sh $1
                 #ssh azureuser@${i} 'bash -s' < upgrade_nodes.sh $1 && \
                 sudo systemctl daemon-reload && \
                 sudo systemctl restart kubelet && \
